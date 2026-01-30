@@ -1,0 +1,33 @@
+{
+  "generation_config": {
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "temperature": 0.0
+  },
+  "metrics": {
+    "accuracy_macro": 0.8226410535218074,
+    "accuracy_weighted": 0.749857276405649,
+    "f1_class_0": 0.9023936170212766,
+    "f1_class_1": 0.03038309114927345,
+    "f1_macro": 0.466388354085275,
+    "f1_weighted": 0.8988115996382094,
+    "fn": 11,
+    "fp": 1457,
+    "precision_class_0": 0.998381638958364,
+    "precision_class_1": 0.015540540540540541,
+    "precision_macro": 0.5069610897494522,
+    "precision_weighted": 0.9943443552388754,
+    "recall_class_0": 0.8232439645760039,
+    "recall_class_1": 0.6764705882352942,
+    "recall_macro": 0.749857276405649,
+    "recall_weighted": 0.8226410535218074,
+    "tn": 6786,
+    "total": 8277,
+    "tp": 23
+  },
+  "model_dir": "LFM2-1.2B",
+  "skip_reasons": {},
+  "skipped_count": 0,
+  "test_path": "data/phase I screening_ALL studies_cleaned_prompts - phase I screening_ALL studies_cleaned_prompts.csv",
+  "timestamp": "2026-01-27T13:26:38.521078"
+}

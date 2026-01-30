@@ -1,0 +1,33 @@
+{
+  "generation_config": {
+    "do_sample": false,
+    "max_new_tokens": 512,
+    "temperature": 0.0
+  },
+  "metrics": {
+    "accuracy_macro": 0.06524102935846321,
+    "accuracy_weighted": 0.5306927089651826,
+    "f1_class_0": 0.1156703623271231,
+    "f1_class_1": 0.008712363869314541,
+    "f1_macro": 0.06219136309821882,
+    "f1_weighted": 0.11523100362861333,
+    "fn": 0,
+    "fp": 7737,
+    "precision_class_0": 1.0,
+    "precision_class_1": 0.004375241281688328,
+    "precision_macro": 0.5021876206408442,
+    "precision_weighted": 0.9959102039632206,
+    "recall_class_0": 0.06138541793036516,
+    "recall_class_1": 1.0,
+    "recall_macro": 0.5306927089651826,
+    "recall_weighted": 0.06524102935846321,
+    "tn": 506,
+    "total": 8277,
+    "tp": 34
+  },
+  "model_name": "unsloth/LFM2.5-1.2B-Instruct",
+  "skip_reasons": {},
+  "skipped_count": 0,
+  "test_path": "data/phase I screening_ALL studies_cleaned_prompts - phase I screening_ALL studies_cleaned_prompts.csv",
+  "timestamp": "2026-01-28T15:03:52.757126"
+}

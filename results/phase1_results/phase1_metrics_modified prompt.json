@@ -1,0 +1,88 @@
+{
+  "timestamp": "20260123_153722",
+  "model_dir": "lfm-1.2_for_sys_review",
+  "data_path": "data/phase I screening_ALL studies_cleaned_prompts - phase I screening_ALL studies_cleaned_prompts.csv",
+  "total_samples": 8277,
+  "temperatures": [
+    0.1,
+    0.4,
+    0.8
+  ],
+  "classification_metrics": {
+    "temp_0.1": {
+      "total": 8277,
+      "accuracy_weighted": 0.5551501809021558,
+      "precision_weighted": 0.992334763106912,
+      "recall_weighted": 0.9598888486166486,
+      "f1_weighted": 0.9756178054766614,
+      "accuracy_macro": 0.9598888486166486,
+      "precision_macro": 0.5062973323576913,
+      "recall_macro": 0.5551501809021558,
+      "f1_macro": 0.504380554148757,
+      "precision_class_0": 0.9963608984816162,
+      "precision_class_1": 0.016233766233766232,
+      "recall_class_0": 0.9632415382748999,
+      "recall_class_1": 0.14705882352941177,
+      "f1_class_0": 0.9795213422156427,
+      "f1_class_1": 0.029239766081871343,
+      "tp": 5,
+      "tn": 7940,
+      "fp": 303,
+      "fn": 29
+    },
+    "temp_0.4": {
+      "total": 8277,
+      "accuracy_weighted": 0.5551501809021558,
+      "precision_weighted": 0.992334763106912,
+      "recall_weighted": 0.9598888486166486,
+      "f1_weighted": 0.9756178054766614,
+      "accuracy_macro": 0.9598888486166486,
+      "precision_macro": 0.5062973323576913,
+      "recall_macro": 0.5551501809021558,
+      "f1_macro": 0.504380554148757,
+      "precision_class_0": 0.9963608984816162,
+      "precision_class_1": 0.016233766233766232,
+      "recall_class_0": 0.9632415382748999,
+      "recall_class_1": 0.14705882352941177,
+      "f1_class_0": 0.9795213422156427,
+      "f1_class_1": 0.029239766081871343,
+      "tp": 5,
+      "tn": 7940,
+      "fp": 303,
+      "fn": 29
+    },
+    "temp_0.8": {
+      "total": 8277,
+      "accuracy_weighted": 0.5551501809021558,
+      "precision_weighted": 0.992334763106912,
+      "recall_weighted": 0.9598888486166486,
+      "f1_weighted": 0.9756178054766614,
+      "accuracy_macro": 0.9598888486166486,
+      "precision_macro": 0.5062973323576913,
+      "recall_macro": 0.5551501809021558,
+      "f1_macro": 0.504380554148757,
+      "precision_class_0": 0.9963608984816162,
+      "precision_class_1": 0.016233766233766232,
+      "recall_class_0": 0.9632415382748999,
+      "recall_class_1": 0.14705882352941177,
+      "f1_class_0": 0.9795213422156427,
+      "f1_class_1": 0.029239766081871343,
+      "tp": 5,
+      "tn": 7940,
+      "fp": 303,
+      "fn": 29
+    }
+  },
+  "cohen_kappa_human_vs_model": {
+    "temp_0.1": 0.022003779641892696,
+    "temp_0.4": 0.022003779641892696,
+    "temp_0.8": 0.022003779641892696
+  },
+  "cohen_kappa_between_passes": {
+    "temp_0.1_vs_temp_0.4": 1.0,
+    "temp_0.1_vs_temp_0.8": 1.0,
+    "temp_0.4_vs_temp_0.8": 1.0
+  },
+  "fleiss_kappa": 0.6431180823189829,
+  "valid_subjects_for_fleiss": 8277
+}

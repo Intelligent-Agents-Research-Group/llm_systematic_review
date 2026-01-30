@@ -1,0 +1,52 @@
+{
+  "input_csv": "phase1_results_lfm2.5/phase1_predictions_20260127_213206.csv",
+  "raters": [
+    "human_decision",
+    "pred_temp_0.1",
+    "pred_temp_0.4",
+    "pred_temp_0.8"
+  ],
+  "N_items": 8277,
+  "n_raters": 4,
+  "n_categories": 2,
+  "fleiss_kappa": {
+    "value": 0.602789766023932,
+    "bootstrap_ci_95": [
+      0.5987260004919212,
+      0.6069060674039368
+    ],
+    "Pbar": 0.88685514075148,
+    "Pe": 0.7151511981049888,
+    "category_proportions": [
+      0.8279871934275703,
+      0.17201280657242962
+    ]
+  },
+  "gwet_ac1": {
+    "value": 0.8417888978605758,
+    "bootstrap_ci_95": [
+      0.8338517991506428,
+      0.8497957500655818
+    ],
+    "Ao": 0.88685514075148,
+    "Ae": 0.28484880189501116,
+    "category_proportions": [
+      0.8279871934275703,
+      0.17201280657242962
+    ]
+  },
+  "gwet_ac2_quadratic": {
+    "value": 0.702092324517949,
+    "bootstrap_ci_95": [
+      0.6990445003689412,
+      0.7051795505529524
+    ],
+    "Ao": 0.91514135556361,
+    "Ae": 0.7151511981049888,
+    "category_proportions": [
+      0.8279871934275703,
+      0.17201280657242962
+    ],
+    "note": "AC2 is only meaningful for ordinal labels (k>=3). For binary labels, interpret cautiously."
+  }
+}
