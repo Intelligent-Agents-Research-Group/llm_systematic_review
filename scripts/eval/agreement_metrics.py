@@ -97,11 +97,6 @@ def main():
         default="metrics",
         help="Top-level key where confusion matrix fields live (default: metrics)"
     )
-    parser.add_argument(
-        "--pretty",
-        action="store_true",
-        help="Pretty-print output JSON"
-    )
     args = parser.parse_args()
 
     input_path = args.input
@@ -117,7 +112,7 @@ def main():
         )
 
     conf = payload[args.metrics_key]
-    required = ["total", "tn", "tp", "fn", "fp"] # "tp_count", "fp_count", "tn_count", "fn_count", 
+    required = ["total", "tn", "tp", "fn", "fp"]
     missing = [k for k in required if k not in conf]
     if missing:
         raise KeyError(f"Missing required fields in JSON['{args.metrics_key}']: {missing}")
@@ -125,10 +120,7 @@ def main():
     results = compute_agreement_metrics(conf)
 
     with open(output_path, "w") as f:
-        if args.pretty:
-            json.dump(results, f, indent=2)
-        else:
-            json.dump(results, f, indent=2)
+        json.dump(results, f, indent=2)
 
     # Console summary
     print("=== Agreement Metrics Computed ===")

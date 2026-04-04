@@ -35,19 +35,6 @@ EVAL_RESULTS_PATH = "results/eval_results_nemotron.json"
 SKIPPED_EXAMPLES_PATH = "results/skipped_examples_nemotron.jsonl"
 SAVED_MODEL_DIR = "models/nemotron_3_nano_30b_a3b_for_sys_review"
 
-FOURBIT_MODELS = [
-    "unsloth/Qwen3-4B-Instruct-2507-unsloth-bnb-4bit",
-    "unsloth/Qwen3-4B-Thinking-2507-unsloth-bnb-4bit",
-    "unsloth/Qwen3-8B-unsloth-bnb-4bit",
-    "unsloth/Qwen3-14B-unsloth-bnb-4bit",
-    "unsloth/Qwen3-32B-unsloth-bnb-4bit",
-    "unsloth/gemma-3-12b-it-unsloth-bnb-4bit",
-    "unsloth/Phi-4",
-    "unsloth/Llama-3.1-8B",
-    "unsloth/Llama-3.2-3B",
-    "unsloth/orpheus-3b-0.1-ft-unsloth-bnb-4bit",
-]
-
 
 def load_base_model(
     model_name=MODEL_NAME,
@@ -55,6 +42,8 @@ def load_base_model(
     max_seq_length=MAX_SEQ_LENGTH,
     load_in_4bit=LOAD_IN_4BIT,
     load_in_8bit=LOAD_IN_8BIT,
+    # full_finetuning=False: LoRA adapters are added separately via add_lora_adapters().
+    # Setting this True here would conflict with PEFT, causing weight duplication for Nemotron.
     full_finetuning=False,
 ):
     global tokenizer, model
@@ -244,12 +233,15 @@ def report_memory_end(start_gpu_memory, max_memory, trainer_stats):
 
 
 def parse_binary_label(text):
-    match = re.search(r"</think>\\s*([01])", text)
+    # Pattern 1: label immediately after </think> tag (with optional whitespace)
+    match = re.search(r"</think>\s*([01])", text)
     if match:
         return int(match.group(1))
-    matches = re.findall(r"\\b[01]\\b", text)
+    # Pattern 2: standalone 0 or 1 at word boundary; take the last match
+    matches = re.findall(r"\b[01]\b", text)
     if matches:
         return int(matches[-1])
+    # Pattern 3: last-resort character scan
     for ch in reversed(text):
         if ch in ("0", "1"):
             return int(ch)
@@ -491,80 +483,6 @@ def load_lora_for_inference(
     return model, tokenizer
 
 
-def save_merged_and_gguf_examples(model, tokenizer):
-    if False:
-        model.save_pretrained_merged(
-            "model",
-            tokenizer,
-            save_method="merged_16bit",
-        )
-    if False:
-        model.push_to_hub_merged(
-            "hf/model",
-            tokenizer,
-            save_method="merged_16bit",
-            token="",
-        )
-
-    if False:
-        model.save_pretrained_merged(
-            "model",
-            tokenizer,
-            save_method="merged_4bit",
-        )
-    if False:
-        model.push_to_hub_merged(
-            "hf/model",
-            tokenizer,
-            save_method="merged_4bit",
-            token="",
-        )
-
-    if False:
-        model.save_pretrained("model")
-        tokenizer.save_pretrained("model")
-    if False:
-        model.push_to_hub("hf/model", token="")
-        tokenizer.push_to_hub("hf/model", token="")
-
-    if False:
-        model.save_pretrained_gguf("model", tokenizer)
-    if False:
-        model.push_to_hub_gguf("hf/model", tokenizer, token="")
-
-    if False:
-        model.save_pretrained_gguf(
-            "model", tokenizer, quantization_method="f16"
-        )
-    if False:
-        model.push_to_hub_gguf(
-            "hf/model",
-            tokenizer,
-            quantization_method="f16",
-            token="",
-        )
-
-    if False:
-        model.save_pretrained_gguf(
-            "model", tokenizer, quantization_method="q4_k_m"
-        )
-    if False:
-        model.push_to_hub_gguf(
-            "hf/model",
-            tokenizer,
-            quantization_method="q4_k_m",
-            token="",
-        )
-
-    if False:
-        model.push_to_hub_gguf(
-            "hf/model",
-            tokenizer,
-            quantization_method=["q4_k_m", "q8_0", "q5_k_m"],
-            token="",
-        )
-
-
 def main():
     model, tokenizer = load_base_model()
     model = add_lora_adapters(model)
@@ -591,9 +509,6 @@ def main():
 
     save_lora(model, tokenizer)
 
-    if False:
-        model, tokenizer = load_lora_for_inference()
-
     run_inference(
         model,
         tokenizer,
@@ -603,8 +518,6 @@ def main():
         "to guided reflection, measuring student learning outcomes. Output 0 "
         "or 1.",
     )
-
-    save_merged_and_gguf_examples(model, tokenizer)
 
 
 if __name__ == "__main__":

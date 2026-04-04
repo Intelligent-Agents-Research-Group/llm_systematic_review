@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 
 
 def normalize_text_columns(df):
+    """Replace escaped newline literals ('\\n', '/n') with actual newlines in all string columns."""
     for col in df.select_dtypes(include="object").columns:
         df[col] = (
             df[col]
@@ -12,7 +13,7 @@ def normalize_text_columns(df):
     return df
 
 def split_data(input_csv, train_csv, test_csv, test_size=0.15, random_state=140126):
-    # Load the dataset
+    # random_state=140126 is the fixed seed used for reproducibility of the published train/test split.
     data = pd.read_csv(input_csv)
     data = normalize_text_columns(data)
 

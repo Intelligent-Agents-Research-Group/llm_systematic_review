@@ -52,6 +52,7 @@ FOURBIT_MODELS = [
     "unsloth/LFM2-700M",
     "unsloth/LFM2-350M",
 ]
+# ^ These are the available LFM2 base model variants. Change MODEL_NAME above to select one.
 
 def load_base_model(
     model_name=MODEL_NAME,
@@ -231,7 +232,7 @@ def predict_label(model, tokenizer, prompt, temperature=0.1, fallback_to_majorit
         **inputs,
         max_new_tokens=8,
         do_sample=False,
-        temperature=temperature,  # Avoid division by zero
+        temperature=temperature,  # Ignored when do_sample=False; kept for API compatibility
         top_k=50,
         top_p=0.1,
         repetition_penalty=1.05,
@@ -434,7 +435,7 @@ def evaluate_on_testset(
     
     # Save results
     results = {
-        "model_name": "lfm-1.2B",
+        "model_name": MODEL_NAME,
         "metrics": metrics,
         "skipped": {
             "total": total_skipped,
@@ -577,84 +578,6 @@ def load_lora_with_peft(lora_dir="lora_model", load_in_4bit=LOAD_IN_4BIT):
     return model, tokenizer
 
 
-def save_merged_and_gguf_examples(model, tokenizer):
-    # Saving to float16 for VLLM
-    if False:
-        model.save_pretrained_merged(
-            "model",
-            tokenizer,
-            save_method="merged_16bit",
-        )
-    if False:
-        model.push_to_hub_merged(
-            "hf/model",
-            tokenizer,
-            save_method="merged_16bit",
-            token="",
-        )
-
-    # Merge to 4bit
-    if False:
-        model.save_pretrained_merged(
-            "model",
-            tokenizer,
-            save_method="merged_4bit",
-        )
-    if False:
-        model.push_to_hub_merged(
-            "hf/model",
-            tokenizer,
-            save_method="merged_4bit",
-            token="",
-        )
-
-    # Just LoRA adapters
-    if False:
-        model.save_pretrained("model")
-        tokenizer.save_pretrained("model")
-    if False:
-        model.push_to_hub("hf/model", token="")
-        tokenizer.push_to_hub("hf/model", token="")
-
-    # GGUF / llama.cpp conversion
-    if False:
-        model.save_pretrained_gguf("model", tokenizer)
-    if False:
-        model.push_to_hub_gguf("hf/model", tokenizer, token="")
-
-    if False:
-        model.save_pretrained_gguf(
-            "model", tokenizer, quantization_method="f16"
-        )
-    if False:
-        model.push_to_hub_gguf(
-            "hf/model",
-            tokenizer,
-            quantization_method="f16",
-            token="",
-        )
-
-    if False:
-        model.save_pretrained_gguf(
-            "model", tokenizer, quantization_method="q4_k_m"
-        )
-    if False:
-        model.push_to_hub_gguf(
-            "hf/model",
-            tokenizer,
-            quantization_method="q4_k_m",
-            token="",
-        )
-
-    if False:
-        model.push_to_hub_gguf(
-            "hf/model",  # Change hf to your username!
-            tokenizer,
-            quantization_method=["q4_k_m", "q8_0", "q5_k_m"],
-            token="",
-        )
-
-
 def main():
     model, tokenizer = load_base_model()
     model = add_lora_adapters(model)
@@ -680,24 +603,6 @@ def main():
     run_inference_examples(model, tokenizer)
 
     save_lora(model, tokenizer)
-
-    # if False:
-    #     model, tokenizer = load_lora_for_inference()
-
-    # run_inference(
-    #     model,
-    #     tokenizer,
-    #     "Assess inclusion for the review. Title: 'ChatGPT-generated feedback "
-    #     "for Python students'. Abstract: A quasi-experiment in an "
-    #     "undergraduate CS course compares AI-generated reflective feedback "
-    #     "to guided reflection, measuring student learning outcomes. Output 0 "
-    #     "or 1. \n\n",
-    # )
-
-    # if False:
-    #     model, tokenizer = load_lora_with_peft()
-
-    # save_merged_and_gguf_examples(model, tokenizer)
 
 
 if __name__ == "__main__":

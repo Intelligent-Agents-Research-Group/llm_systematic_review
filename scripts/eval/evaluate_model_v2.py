@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """
-Standalone evaluation script for the fine-tuned Nemotron-3-Nano-30B-A3B model.
+Standalone evaluation script for the base LFM2.5-1.2B-Instruct model (no fine-tuning).
+
+Evaluates the unmodified base model on the full Phase I screening dataset to establish
+a zero-shot baseline, producing results saved under *_unsloth_no_finetune.* paths.
 
 This script:
-1. Loads the saved LoRA model from disk
-2. Evaluates it on the test dataset
+1. Loads the base model directly from HuggingFace (no LoRA adapter)
+2. Evaluates it on the full Phase I screening dataset (8,277 samples)
 3. Logs ALL skipped examples (not just snippets)
 4. Provides detailed per-example logging for debugging
 5. Improves label parsing to handle the model's thinking output format
 
 Usage:
-    python evaluate_model.py [--model-dir MODEL_DIR] [--test-path TEST_PATH]
-                             [--max-samples N] [--verbose]
+    python evaluate_model_v2.py [--model-dir MODEL_DIR] [--test-path TEST_PATH]
+                                [--max-samples N] [--verbose]
 """
 
 import argparse
@@ -28,10 +31,6 @@ import torch
 from tqdm import tqdm
 
 from unsloth import FastLanguageModel
-# # Set environment variables before importing unsloth
-# if "TRANSFORMERS_CACHE" in os.environ and "HF_HOME" not in os.environ:
-#     os.environ["HF_HOME"] = os.environ["TRANSFORMERS_CACHE"]
-# os.environ.setdefault("TRANSFORMERS_NO_TORCHVISION", "1")
 
 from datasets import load_dataset
 
@@ -214,16 +213,10 @@ def load_model(
         logger.info(f"Loading model from: {model_dir}")
         logger.info(f"Max sequence length: {max_seq_length}")
         logger.info(f"Load in 4-bit: {load_in_4bit}")
-    
-    # if not os.path.exists(model_dir):
-    #     raise FileNotFoundError(f"Model directory not found: {model_dir}")
-
-    # model_path = Path(model_dir)
-    # config_path = model_path/"config.json"
-    # adapter_config_path = model_path / "adapter_config.json"
 
     used_unsloth = False
-    # if config_path.exists():
+    # Load the base model directly from HuggingFace (no local adapter path check).
+    # This script evaluates the unmodified base model to establish a zero-shot baseline.
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=model_dir,
         max_seq_length=max_seq_length,
@@ -231,49 +224,6 @@ def load_model(
         trust_remote_code=True,
     )
     used_unsloth = True
-    # elif adapter_config_path.exists():
-    #     with open(adapter_config_path, "r", encoding="utf-8") as f:
-    #         adapter_config = json.load(f)
-    #     base_model = adapter_config.get("base_model_name_or_path")
-    #     if not base_model:
-    #         raise ValueError(
-    #             f"Missing base_model_name_or_path in {adapter_config_path}"
-    #         )
-    #     if logger:
-    #         logger.info(f"Adapter detected. Base model: {base_model}")
-    #     try:
-    #         model, tokenizer = FastLanguageModel.from_pretrained(
-    #             model_name=base_model,
-    #             max_seq_length=max_seq_length,
-    #             load_in_4bit=load_in_4bit,
-    #             trust_remote_code=True,
-    #             attn_implementation="eager",
-    #         )
-    #         from peft import PeftModel
-
-    #         model = PeftModel.from_pretrained(model, model_dir)
-    #         used_unsloth = True
-    #     except Exception as exc:
-    #         if logger:
-    #             logger.warning(
-    #                 "Unsloth base load failed, falling back to PEFT. "
-    #                 f"Reason: {exc}"
-    #             )
-    #         from peft import AutoPeftModelForCausalLM
-    #         from transformers import AutoTokenizer
-
-    #         model = AutoPeftModelForCausalLM.from_pretrained(
-    #             model_dir,
-    #             trust_remote_code=True,
-    #         )
-    #         tokenizer = AutoTokenizer.from_pretrained(
-    #             base_model,
-    #             trust_remote_code=True,
-    #         )
-    # else:
-    #     raise FileNotFoundError(
-    #         "Model directory is missing config.json or adapter_config.json."
-    #     )
 
     if used_unsloth:
         FastLanguageModel.for_inference(model)
@@ -678,10 +628,6 @@ def main():
     logger.info("=" * 60)
     
     # Check paths
-    # if not os.path.exists(args.model_dir):
-    #     logger.error(f"Model directory not found: {args.model_dir}")
-    #     sys.exit(1)
-    
     if not os.path.exists(args.test_path):
         logger.error(f"Test data file not found: {args.test_path}")
         sys.exit(1)
