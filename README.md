@@ -11,12 +11,6 @@ A fine-tuned language model workflow for automating Phase I screening of academi
 
 ```
 llm_systematic_review/
-├── data/
-│   ├── 200_0_172_1 LFM.csv                              # Raw labeled training data (371 rows)
-│   ├── train_data_LFM.csv                               # Training split (315 rows)
-│   ├── test_data_LFM.csv                                # Test split (56 rows)
-│   ├── phase I screening_ALL studies_cleaned_prompts.csv # Full Phase I dataset (8,277 rows)
-│   └── DATASET_CARD.md
 ├── scripts/
 │   ├── train/
 │   │   ├── lfm2_sft_with_unsloth.py        # SFT training for LFM2 / LFM2.5 (LoRA)
@@ -29,7 +23,8 @@ llm_systematic_review/
 │   └── pipeline/
 │       └── phase1_inference_pipeline.py    # 3-pass temperature inference + agreement metrics
 ├── utils/
-│   └── split_data.py                       # Train/test split from raw labeled data
+│   └── split_data.py                       # Reference: how the train/test split was produced
+├── models/                                 # LoRA adapters saved here after training
 ├── requirements.txt
 └── README.md
 ```
@@ -46,15 +41,28 @@ pip install -r requirements.txt
 
 ---
 
-## Data Preparation
+## Dataset
 
-The train/test split CSVs are already included in `data/`. To regenerate them from the raw labeled file:
+All data files are published on HuggingFace. Download them before running any scripts:
 
 ```bash
-python utils/split_data.py
+# Install HuggingFace Hub CLI if needed
+pip install huggingface_hub
+
+# Download the dataset
+python - <<'EOF'
+from huggingface_hub import snapshot_download
+snapshot_download(repo_id="IARG-UF/llm_sys_review", repo_type="dataset", local_dir="data")
+EOF
 ```
 
-This splits `data/200_0_172_1 LFM.csv` into `train_data_LFM.csv` (315 rows, 85%) and `test_data_LFM.csv` (56 rows, 15%) using a fixed random seed.
+The dataset contains:
+- `train_data_LFM.csv` — training split (315 rows, 85%)
+- `test_data_LFM.csv` — test split (56 rows, 15%)
+- `phase I screening_ALL studies_cleaned_prompts.csv` — full Phase I screening set (8,277 rows)
+- `200_0_172_1 LFM.csv` — raw labeled source data (371 rows)
+
+`utils/split_data.py` documents how the train/test split was generated from the raw labeled file.
 
 ---
 
@@ -145,7 +153,7 @@ Computes Fleiss' kappa, multi-rater Gwet AC1, and AC2 with bootstrapped 95% CIs.
 
 ## Sample Inference
 
-Using the published model directly without cloning this repo:
+Using the published model without cloning this repo:
 
 ```python
 from unsloth import FastLanguageModel
@@ -177,5 +185,5 @@ print(tokenizer.decode(output[0], skip_special_tokens=True))
 ## Notes
 
 - Run all commands from the repository root so relative paths in scripts resolve correctly.
-- Large artifacts (model weights, caches, virtual environment) are git-ignored. The `models/` directory is populated by running a training script or by downloading the published adapter from HuggingFace.
-- The full Phase I dataset (`phase I screening_ALL studies_cleaned_prompts.csv`) has severe class imbalance: ~99.6% excluded (label 0), ~0.4% included (label 1). Evaluation metrics should be interpreted accordingly.
+- Model weights, caches, and virtual environments are git-ignored. The `models/` directory is populated by running a training script or by downloading the published adapter from HuggingFace.
+- The full Phase I dataset has severe class imbalance: ~99.6% excluded (label 0), ~0.4% included (label 1). Evaluation metrics should be interpreted accordingly.
