@@ -174,4 +174,3 @@ models/
 caches/
 results/
 .github/
-utils/push_hf.py
