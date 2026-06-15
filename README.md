@@ -1,9 +1,20 @@
 # LLM Systematic Review Classifier
 
-A fine-tuned language model workflow for automating Phase I screening of academic papers in systematic reviews. The project uses Unsloth-based SFT/LoRA training and evaluation pipelines to classify papers as included (`1`) or excluded (`0`) based on predefined inclusion criteria.
+Code and models for automating Phase I title-and-abstract screening in educational technology systematic reviews. A 1.2B-parameter language model is fine-tuned with Unsloth SFT/LoRA to classify papers as included (`1`) or excluded (`0`) against predefined inclusion criteria, reducing manual screening burden while maintaining alignment with human reviewer decisions.
 
 - **Dataset:** [IARG-UF/llm_sys_review](https://huggingface.co/datasets/IARG-UF/llm_sys_review)
 - **Published model:** [IARG-UF/lfm-2.5-1.2b-instruct_for_sys_review](https://huggingface.co/IARG-UF/lfm-2.5-1.2b-instruct_for_sys_review)
+
+---
+
+## Publication
+
+> **Fine-Tuning A 1.2B Large Language Model for Systematic Review Screening in Educational Technology**
+>
+> Kweku Yamoah, Noah Schroeder, Emmanuel Dorley, Neha Rani, and Caleb Schutz
+>
+> *SLM4ED'26: The 1st Workshop on Small Language Models for Education (SLM4ED)*
+> June 28, 2026 · Seoul, Republic of Korea
 
 ---
 
@@ -13,8 +24,7 @@ A fine-tuned language model workflow for automating Phase I screening of academi
 llm_systematic_review/
 ├── scripts/
 │   ├── train/
-│   │   ├── lfm2_sft_with_unsloth.py        # SFT training for LFM2 / LFM2.5 (LoRA)
-│   │   └── nemotron_3_nano_30b_a3b_a100.py # SFT training for Nemotron-3-Nano-30B-A3B (LoRA)
+│   │   └── lfm2_sft_with_unsloth.py        # SFT training for LFM2 / LFM2.5 (LoRA)
 │   ├── eval/
 │   │   ├── evaluate_model.py               # Evaluate fine-tuned model on full dataset
 │   │   ├── evaluate_model_v2.py            # Evaluate base model (no fine-tuning)
@@ -25,6 +35,13 @@ llm_systematic_review/
 ├── utils/
 │   └── split_data.py                       # Reference: how the train/test split was produced
 ├── models/                                 # LoRA adapters saved here after training
+│   ├── lfm-1.2_for_sys_review/
+│   ├── lfm-1.2_for_sys_review_good/
+│   ├── lfm-2.5-1.2b-instruct_for_sys_review/
+│   └── nemotron_3_nano_30b_a3b_for_sys_review/
+├── caches/
+│   ├── unsloth_compiled_cache/             # Unsloth kernel compilation cache
+│   └── unsloth_training_checkpoints/       # Intermediate training checkpoints
 ├── requirements.txt
 └── README.md
 ```
@@ -32,6 +49,8 @@ llm_systematic_review/
 ---
 
 ## Setup
+
+> **Requirements:** Python 3.10+, a CUDA-capable GPU with at least 8 GB VRAM (e.g., RTX 3060, T4). LFM2.5-1.2B-Instruct is a 1.2B-parameter model; LoRA fine-tuning with Unsloth fits comfortably on a free Colab T4 or comparable consumer GPU.
 
 ```bash
 python3 -m venv env/llm_env
@@ -57,18 +76,16 @@ EOF
 ```
 
 The dataset contains:
-- `train_data_LFM.csv` — training split (315 rows, 85%)
-- `test_data_LFM.csv` — test split (56 rows, 15%)
-- `phase I screening_ALL studies_cleaned_prompts.csv` — full Phase I screening set (8,277 rows)
-- `200_0_172_1 LFM.csv` — raw labeled source data (371 rows)
+- `train_data_LFM.csv` — training split (315 samples, 85%)
+- `test_data_LFM.csv` — held-out test split (56 samples, 15%)
+- `phase I screening_ALL studies_cleaned_prompts.csv` — full Phase I screening set (8,277 samples)
+- `200_0_172_1 LFM.csv` — raw human-labeled source data (371 samples: 200 excluded, 172 included)
 
-`utils/split_data.py` documents how the train/test split was generated from the raw labeled file.
+`utils/split_data.py` documents how the stratified train/test split was generated from the raw labeled file.
 
 ---
 
 ## Training
-
-### LFM2 / LFM2.5 (recommended)
 
 ```bash
 python scripts/train/lfm2_sft_with_unsloth.py
@@ -77,16 +94,6 @@ python scripts/train/lfm2_sft_with_unsloth.py
 - Base model: `unsloth/LFM2.5-1.2B-Instruct`
 - LoRA: r=16, alpha=16, trained on response tokens only
 - Saves adapter to `models/lfm-2.5-1.2b-instruct_for_sys_review/`
-
-### Nemotron-3-Nano-30B-A3B (requires A100)
-
-```bash
-python scripts/train/nemotron_3_nano_30b_a3b_a100.py
-```
-
-- Base model: `unsloth/Nemotron-3-Nano-30B-A3B`
-- LoRA: r=8, alpha=16
-- Saves adapter to `models/nemotron_3_nano_30b_a3b_for_sys_review/`
 
 ---
 
@@ -101,9 +108,9 @@ python scripts/eval/evaluate_model.py \
 ```
 
 Outputs written to `results/` (created on first run):
-- `eval_results_*.json` — classification metrics
-- `evaluation_detailed_log_*.jsonl` — per-example predictions
-- `skipped_examples_*.jsonl` — samples where no valid label was parsed
+- `eval_results_*.json` — classification metrics summary
+- `evaluation_detailed_log_*.jsonl` — per-example predictions and raw model output
+- `skipped_examples_*.jsonl` — samples where no valid label could be parsed
 
 ### Base model without fine-tuning
 
@@ -117,7 +124,7 @@ Uses `unsloth/LFM2.5-1.2B-Instruct` directly from HuggingFace (no local adapter 
 
 ## Phase I Screening Pipeline
 
-Runs 3 inference passes at temperatures [0.1, 0.4, 0.8] over the full Phase I dataset and computes inter-rater agreement between passes and human annotations.
+Runs 3 inference passes at temperatures `[0.1, 0.4, 0.8]` over the full Phase I dataset and computes inter-rater agreement between passes and against human annotations.
 
 ```bash
 python scripts/pipeline/phase1_inference_pipeline.py
@@ -184,6 +191,6 @@ print(tokenizer.decode(output[0], skip_special_tokens=True))
 
 ## Notes
 
-- Run all commands from the repository root so relative paths in scripts resolve correctly.
+- Run all commands from the repository root so that relative paths in scripts resolve correctly.
 - Model weights, caches, and virtual environments are git-ignored. The `models/` directory is populated by running a training script or by downloading the published adapter from HuggingFace.
-- The full Phase I dataset has severe class imbalance: ~99.6% excluded (label 0), ~0.4% included (label 1). Evaluation metrics should be interpreted accordingly.
+- The full Phase I dataset has severe class imbalance (~99.6% excluded, ~0.4% included). Balanced accuracy and per-class metrics are more informative than raw accuracy in this setting.
